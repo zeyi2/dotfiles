@@ -1,0 +1,3 @@
+#!/bin/sh
+# A Script for Hacking C source code
+echo | gcc -E -Wp,-v -

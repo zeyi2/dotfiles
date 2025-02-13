@@ -1,0 +1,46 @@
+#!/bin/bash
+#
+#     A Script to find function calls in a C file
+#     Compatible with Emacs Compliation Mode
+#
+
+files=()
+recursive=
+search_keyword=
+
+usage() {
+    echo "Usage: $0 [-R] [-f file]... [-s keyword]"
+    exit 1
+}
+
+while getopts "f:Rs:" opt; do
+    case $opt in
+        f) files+=("$OPTARG");;
+        R) recursive=1;;
+        s) search_keyword="$OPTARG";;
+        *) usage;;
+    esac
+done
+shift $((OPTIND -1))
+
+if [ ${#files[@]} -eq 0 ]; then
+    find_opts=(-name "*.[ch]")
+    [ -z "$recursive" ] && find_opts+=(-maxdepth 1)
+    while IFS= read -r -d '' file; do
+        files+=("$file")
+    done < <(find . "${find_opts[@]}" -print0 2>/dev/null)
+fi
+
+for f in "${files[@]}"; do
+    printf "$f\n"
+    [ -f "$f" ] || continue
+    cat -n "$f" | grep -v "if\|else\|for\|while\|return" \
+    | grep --color=always "_*(\|[[:alpha:]]*(" \
+    | { [ -n "$search_keyword" ] && grep "$search_keyword" || cat; } \
+    | awk -v filename="$f" '{
+	  num = substr($0, 5, 2);
+          content = substr($0, 7);
+          print filename ":" num ":" content;
+      }'
+    printf "\n"
+done

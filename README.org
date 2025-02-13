@@ -1,0 +1,13 @@
+* Dotfiles
+
+My configuration files
+
+** Usage
+
+Clone This repo first, then do
+
+#+BEGIN_SRC shell
+  ./install.sh
+#+END_SRC
+
+Everything should be OK now
