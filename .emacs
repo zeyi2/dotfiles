@@ -219,9 +219,21 @@
 (global-set-key (kbd "C-c C-e") 'sly-eval-last-expression)
 (global-set-key (kbd "C-c C-j") 'sly-compile-file)
 
+;; Paredit
+(mitchell/require 'paredit)
+
+(defun mitchell/turn-on-paredit ()
+  (interactive)
+  (paredit-mode 1))
+
+(add-hook 'emacs-lisp-mode-hook 'mitchell/turn-on-paredit)
+(add-hook 'sly-mode-hook 'mitchell/turn-on-paredit)
+(add-hook 'racket-mode-hook 'mitchell/turn-on-paredit)
+
 ;; Multiple Cursors
 (mitchell/require 'multiple-cursors)
 (require 'multiple-cursors)
+
 (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -256,4 +268,4 @@ compilation-error-regexp-alist-alist
 (require 'company)
 (global-company-mode)
 
-
+(load-file custom-file)
