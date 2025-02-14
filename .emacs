@@ -63,6 +63,9 @@
 (setq dired-listing-switches "-alh")
 (setq dired-mouse-drag-files t)
 
+;; Term
+(mitchell/require 'vterm)
+
 ;; Helm
 (mitchell/require 'helm 'helm-git-grep 'helm-ls-git)
 
