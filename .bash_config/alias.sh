@@ -87,3 +87,4 @@ alias pscpua="ps auxf | sort -nr -k 3"
 
 # Big Brother
 alias va="sudo v2raya"
+alias sa="sudo v2raya"
