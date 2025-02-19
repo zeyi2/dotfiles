@@ -86,6 +86,38 @@
     (end-of-line-nomark)
     (beginning-of-line-mark)))
 
+(defvar alarm-clock-timer nil
+  "Keep timer so that the user can cancel the alarm.")
+
+(defun alarm-clock-message (text)
+  "The actual alarm action.
+Argument TEXT alarm message."
+  (shell-command (format "notify-send -t 10000 -- \"%s\"" text)))
+
+(defun alarm-clock ()
+  "Set an alarm.
+The time format is the same accepted by `run-at-time`.
+For example, \"11:30am\" or \"15:45\"."
+  (interactive)
+  (let* ((time (read-string "Time (example, 11:30am or 15:45): "))
+         (text (read-string "Message: "))
+         (parsed-time (ignore-errors (run-at-time time nil #'ignore)))) ;; Check if time is valid
+    (if parsed-time
+        (progn
+          (setq alarm-clock-timer (run-at-time time nil 'alarm-clock-message text))
+          (message "Alarm set for %s" time))
+      (message "Invalid time format."))))
+
+(defun alarm-clock-cancel ()
+  "Cancel the alarm clock."
+  (interactive)
+  (if (timerp alarm-clock-timer)
+      (progn
+        (cancel-timer alarm-clock-timer)
+        (setq alarm-clock-timer nil)
+        (message "Alarm canceled."))
+    (message "No alarm set.")))
+
 ;; Whitespace mode
 (defun mitchell/set-up-whitespace-handling ()
   (interactive)
