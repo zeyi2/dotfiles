@@ -4,6 +4,9 @@ alias ec="emacsclient -c"
 alias E='SUDO_EDITOR=emacsclient sudo -e'
 alias v="vim"
 
+# Common Lisp
+alias sbcl='rlwrap sbcl'
+
 # Lists
 alias l='ls -lAh'
 alias la="ls -a"
