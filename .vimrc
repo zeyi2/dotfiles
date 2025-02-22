@@ -17,6 +17,7 @@ set modeline
 set iminsert=0
 set imsearch=0
 set autoindent
+set nocompatible
 set autochdir
 colorscheme habamax
 
