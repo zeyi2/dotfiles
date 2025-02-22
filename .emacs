@@ -219,17 +219,6 @@
 (global-set-key (kbd "C-c C-e") 'sly-eval-last-expression)
 (global-set-key (kbd "C-c C-j") 'sly-compile-file)
 
-;; Paredit
-(mitchell/require 'paredit)
-
-(defun mitchell/turn-on-paredit ()
-  (interactive)
-  (paredit-mode 1))
-
-(add-hook 'emacs-lisp-mode-hook 'mitchell/turn-on-paredit)
-(add-hook 'sly-mode-hook 'mitchell/turn-on-paredit)
-(add-hook 'racket-mode-hook 'mitchell/turn-on-paredit)
-
 ;; Multiple Cursors
 (mitchell/require 'multiple-cursors)
 (require 'multiple-cursors)
@@ -263,9 +252,17 @@ compilation-error-regexp-alist-alist
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'mitchell/colorize-compilation-buffer))
 
+;; OCaml
+(mitchell/require 'tuareg)
+(mitchell/require 'merlin)
+
 ;; Company-mode
 (mitchell/require 'company)
 (require 'company)
 (global-company-mode)
 
 (load-file custom-file)
+
+;; ## added by OPAM user-setup for emacs / base ## 56ab50dc8996d2bb95e7856a6eddb17b ## you can edit, but keep this line
+(require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
+;; ## end of OPAM user-setup addition for emacs / base ## keep this line
