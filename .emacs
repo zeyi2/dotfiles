@@ -23,6 +23,7 @@
 (add-to-list 'load-path "~/.emacs.local/")
 (load "~/.emacs.local/llvm-mode.el")
 (load "~/.emacs.local/mitchell.el")
+(load "~/.emacs.local/simpc.el")
 
 ;; Disable default GUI elements
 (menu-bar-mode -1)
@@ -31,6 +32,7 @@
 (setq inhibit-startup-message t)
 (setq initial-scratch-message "")
 (setq inhibit-default-init t)
+(setq visible-bell 0)
 
 ;; Fonts & Themes
 (defun mitchell/get-font ()
@@ -40,7 +42,7 @@
    ))
 (add-to-list 'default-frame-alist `(font . ,(mitchell/get-font)))
 
-(mitchell/require-theme 'gruber-darker)
+;; (mitchell/require-theme 'plan9)
 
 ;; Autosave
 ;; https://stackoverflow.com/questions/151945/how-do-i-control-how-emacs-makes-backup-files
@@ -88,15 +90,14 @@
 
 (yas-global-mode 1)
 
-;; Load iswitch mode
-(require 'iswitchb)
-(iswitchb-mode 1)
-
 ;; Load ido-mode and smex
 (mitchell/require 'smex 'ido-completing-read+)
 
 (require 'ido)
 (require 'ido-completing-read+)
+(ido-mode 'buffers)
+(setq ido-ignore-buffers '("^ " "*Completions*" "*Shell Command Output*"
+               "*Messages*" "Async Shell Command"))
 (require 'smex)
 
 (ido-mode 1)
@@ -125,19 +126,34 @@
 ;; C configs
 (mitchell/require 'ggtags 'flycheck)	      
 
-(setq c-basic-offset 4)
-(setq c-default-style "linux")
+;; (setq c-basic-offset 4)
+;; (setq c-default-style "linux")
 
-(add-hook 'c-mode-hook 'flycheck-mode)
+;; (add-hook 'c-mode-hook 'flycheck-mode)
 
-(add-hook 'c-mode-common-hook
-	  (lambda ()
-	    (when (locate-dominating-file default-directory "GTAGS")
-	      (ggtags-mode 1))))
+;; (add-hook 'c-mode-common-hook
+;; 	  (lambda ()
+;; 	    (when (locate-dominating-file default-directory "GTAGS")
+;; 	      (ggtags-mode 1))))
 
-(add-hook 'c-mode-hook (lambda ()
-                         (interactive)
-                         (c-toggle-comment-style -1)))
+;; (add-hook 'c-mode-hook (lambda ()
+;;                          (interactive)
+;;                          (c-toggle-comment-style -1)))
+
+(require 'simpc-mode)
+(add-to-list 'auto-mode-alist '("\\.[hc]\\(pp\\)?\\'" . simpc-mode))
+
+(defun mitchell/astyle-buffer ()
+  (interactive)
+  (let ((saved-line-number (line-number-at-pos)))
+    (shell-command-on-region
+     (point-min)
+     (point-max)
+     "astyle --style=kr" nil t)
+    (whitespace-cleanup)
+    (goto-line saved-line-number)))
+
+(global-set-key (kbd "C-c C-a") 'mitchell/astyle-buffer)
 
 ;; Python
 (require 'python)
@@ -186,6 +202,22 @@
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((C . t)))
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((shell . t)))
+
+(global-set-key (kbd "C-c a") 'org-agenda)
+
+(defun mitchell/org-summary-todo (n-done n-not-done)
+  "Switch entry to DONE when all subentries are done, to TODO otherwise."
+  (let (org-log-done org-log-states)   ; turn off logging
+    (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
+
+(setq org-todo-keywords
+'((sequence "TODO" "STARTED" "WAITING" "|" "DONE" "PUTOFF")))
+
+(add-hook 'org-after-todo-statistics-hook 'mitchell/org-summary-todo)
 
 ;; It's Magit!
 (mitchell/require 'magit 'cl-lib)
