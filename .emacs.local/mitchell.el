@@ -121,11 +121,11 @@ For example, \"11:30am\" or \"15:45\"."
 ;; Whitespace mode
 (defun mitchell/set-up-whitespace-handling ()
   (interactive)
-  (whitespace-mode 1)
   (add-to-list 'write-file-functions 'delete-trailing-whitespace))
 
 (add-hook 'c++-mode-hook 'mitchell/set-up-whitespace-handling)
 (add-hook 'c-mode-hook 'mitchell/set-up-whitespace-handling)
+(add-hook 'simpc-mode-hook 'mitchell/set-up-whitespace-handling)
 (add-hook 'racket-mode-hook 'mitchell/set-up-whitespace-handling)
 (add-hook 'emacs-lisp-mode 'mitchell/set-up-whitespace-handling)
 (add-hook 'rust-mode-hook 'mitchell/set-up-whitespace-handling)

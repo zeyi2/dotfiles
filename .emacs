@@ -106,6 +106,17 @@
 (global-set-key (kbd "M-x") 'smex)
 (global-set-key (kbd "C-c M-x") 'execute-extended-command)
 
+;; EAF
+(add-to-list 'load-path "~/.emacs.d/site-lisp/emacs-application-framework/")
+(require 'eaf)
+(require 'eaf-org-previewer)
+(require 'eaf-rss-reader)
+(require 'eaf-video-player)
+(require 'eaf-pdf-viewer)
+(require 'eaf-browser)
+(global-set-key (kbd "C-c b") 'eaf-open-browser)
+(global-set-key (kbd "C-c o") 'eaf-open)
+
 ;; Make text mode the default for new buffers
 (setq default-major-mode 'text-mode)
 
@@ -124,24 +135,24 @@
 (setq display-line-numbers-type 'relative)
 
 ;; C configs
-(mitchell/require 'ggtags 'flycheck)	      
+(mitchell/require 'ggtags 'flycheck)
 
-;; (setq c-basic-offset 4)
-;; (setq c-default-style "linux")
+(setq c-basic-offset 4)
+(setq c-default-style "linux")
 
-;; (add-hook 'c-mode-hook 'flycheck-mode)
+(add-hook 'c-mode-hook 'flycheck-mode)
 
-;; (add-hook 'c-mode-common-hook
-;; 	  (lambda ()
-;; 	    (when (locate-dominating-file default-directory "GTAGS")
-;; 	      (ggtags-mode 1))))
+(add-hook 'c-mode-common-hook
+	  (lambda ()
+	    (when (locate-dominating-file default-directory "GTAGS")
+	      (ggtags-mode 1))))
 
-;; (add-hook 'c-mode-hook (lambda ()
-;;                          (interactive)
-;;                          (c-toggle-comment-style -1)))
+(add-hook 'c-mode-hook (lambda ()
+                         (interactive)
+                         (c-toggle-comment-style -1)))
 
-(require 'simpc-mode)
-(add-to-list 'auto-mode-alist '("\\.[hc]\\(pp\\)?\\'" . simpc-mode))
+;; (require 'simpc-mode)
+;; (add-to-list 'auto-mode-alist '("\\.[hc]\\(pp\\)?\\'" . simpc-mode))
 
 (defun mitchell/astyle-buffer ()
   (interactive)
