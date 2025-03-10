@@ -24,6 +24,9 @@
 (load "~/.emacs.local/llvm-mode.el")
 (load "~/.emacs.local/mitchell.el")
 (load "~/.emacs.local/simpc.el")
+(load "~/.emacs.local/cmake-mode.el")
+(load "~/.emacs.local/nekomimi-agent.el")
+(require 'nekomimi-agent)
 
 ;; Disable default GUI elements
 (menu-bar-mode -1)
@@ -116,6 +119,22 @@
 (require 'eaf-browser)
 (global-set-key (kbd "C-c b") 'eaf-open-browser)
 (global-set-key (kbd "C-c o") 'eaf-open)
+
+;; gptel
+(mitchell/require 'gptel)
+(require 'gptel)
+
+(setq gptel-model   'gpt-4o
+      gptel-backend
+      (gptel-make-openai "Nekomimi"
+	:host "sg.uiuiapi.com/v1"
+	:endpoint "/chat/completions"
+	:stream t
+	:key ""
+	:models '(gpt-4o gpt-3.5-turbo)))
+
+(add-to-list 'gptel-directives
+             (cons 'Nekomimi nekomimi-story-original))
 
 ;; Make text mode the default for new buffers
 (setq default-major-mode 'text-mode)
