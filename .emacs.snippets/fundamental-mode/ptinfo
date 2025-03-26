@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: ptinfo
+# key: ptinfo
+# --
+define ptinfo
+  delete
+  b -f $1 -label end
+  commands $bpnum
+    printf "==> ----------- $2 ----------\\n"
+    printf "$3:Replace Me}"
+    continue
+  end
+end
+$0

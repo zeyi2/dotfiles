@@ -10,7 +10,6 @@ alias sbcl='rlwrap sbcl'
 # Lists
 alias l='ls -lAh'
 alias la="ls -a"
-alias sl="ls"
 alias ll="ls -al"
 
 # Grep
@@ -89,5 +88,5 @@ alias pscpu="ps auxf | sort -nr -k 3 | head -10"
 alias pscpua="ps auxf | sort -nr -k 3"
 
 # Big Brother
-alias va="sudo v2raya"
 alias sa="sudo v2raya"
+alias va="sudo v2raya"

@@ -25,6 +25,8 @@
 (load "~/.emacs.local/mitchell.el")
 (load "~/.emacs.local/simpc.el")
 (load "~/.emacs.local/cmake-mode.el")
+(load "~/.emacs.local/sail-mode.el")
+(load "~/.emacs.local/asl-mode.el")
 (load "~/.emacs.local/nekomimi-agent.el")
 (require 'nekomimi-agent)
 
