@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#
+# msmtp.wrap - bypass local in favor of remote sendmail,
+#              if certain headers are found
+
+PATH=/bin:/usr/bin:/usr/local/bin
+Account0=mitchell@sdf.org
+Account1=mitchell@segfault.net
+MTA=msmtp
+draft="$(mktemp -t sendmail.XXXXXX)"
+cat /dev/stdin > "$draft"
+sender="$(grep '^From:' "$draft" | head -n 1 | cut -d: -f2)"
+
+case "$sender" in
+    *$Account0*)
+        sendmail="ssh $Account0 sendmail -t" ;;
+    *$Account1*)
+        sendmail="ssh $Account1 sendmail -t" ;;
+    *)
+        sendmail="$MTA $*" ;;
+esac
+
+< "$draft" $sendmail; status=$?

@@ -1,0 +1,3 @@
+#!/usr/bin/sh
+echo "creating a backup as $1~"
+cp -i "$1" "./$1~"

@@ -28,7 +28,6 @@
 (load "~/.emacs.local/sail-mode.el")
 (load "~/.emacs.local/asl-mode.el")
 (load "~/.emacs.local/nekomimi-agent.el")
-(require 'nekomimi-agent)
 
 ;; Disable default GUI elements
 (menu-bar-mode -1)
@@ -125,6 +124,16 @@
 ;; gptel
 (mitchell/require 'gptel)
 (require 'gptel)
+(require 'nekomimi-agent)
+
+(defun mitchell/read-api-key (key-name)
+  (with-temp-buffer
+    (insert-file-contents-literally "~/.emacs.local/secrets/gpt_keys.gpg")
+    (shell-command-on-region
+     (point-min) (point-max) "gpg --quiet --decrypt 2>/dev/null" nil t)
+    (goto-char (point-min))
+    (re-search-forward (concat key-name " \\(.*\\)"))
+    (match-string 1)))
 
 (setq gptel-model   'gpt-4o
       gptel-backend
@@ -132,7 +141,7 @@
 	:host "sg.uiuiapi.com/v1"
 	:endpoint "/chat/completions"
 	:stream t
-	:key ""
+	:key (mitchell/read-api-key "OPENAI_API_KEY")
 	:models '(gpt-4o gpt-3.5-turbo)))
 
 (add-to-list 'gptel-directives
@@ -155,37 +164,119 @@
 (global-display-line-numbers-mode 1)
 (setq display-line-numbers-type 'relative)
 
+;; Company-mode
+(mitchell/require 'company 'company-rtags 'company-c-headers)
+(require 'company)
+(require 'company-c-headers)
+(require 'company-rtags)
+
+(setq company-minimum-prefix-length 1
+      company-idle-delay 0.1
+      company-tooltip-limit 15
+      company-dabbrev-downcase nil
+      company-transformers '(company-sort-by-backend-importance)
+      company-require-match 'never)
+
+(global-company-mode 1)
+
 ;; C configs
-(mitchell/require 'ggtags 'flycheck)
-
-(setq c-basic-offset 4)
-(setq c-default-style "linux")
-
-(add-hook 'c-mode-hook 'flycheck-mode)
+(mitchell/require 'ggtags)
 
 (add-hook 'c-mode-common-hook
-	  (lambda ()
-	    (when (locate-dominating-file default-directory "GTAGS")
-	      (ggtags-mode 1))))
+          (lambda ()
+            (add-to-list 'company-backends 'company-c-headers)
+            (add-to-list 'company-backends 'company-rtags)
+            (company-mode)))
 
 (add-hook 'c-mode-hook (lambda ()
                          (interactive)
                          (c-toggle-comment-style -1)))
 
+;; LSP Mode
+(mitchell/require 'lsp-mode 'lsp-ui)
+(require 'lsp-mode)
+(require 'lsp-ui)
+
+(setq lsp-clients-clangd-executable "/usr/bin/clangd"
+      lsp-enable-snippet t
+      lsp-enable-on-type-formatting t
+      lsp-log-io nil
+      lsp-ui-doc-delay 0.5
+      lsp-ui-peek-always-show t
+      lsp-ui-sideline-ignore-duplicate t)
+
+(setq lsp-clients-clangd-args '("-j=4"
+                                "--background-index"
+                                "--clang-tidy"
+                                "--completion-style=detailed"
+                                "--header-insertion=never"
+                                "--pch-storage=memory"
+                                "--log=error"))
+
+(define-key lsp-mode-map (kbd "M-.") 'lsp-find-definition)
+(define-key lsp-mode-map (kbd "M-,") 'lsp-find-references)
+(define-key lsp-mode-map (kbd "C-c C-d") 'lsp-describe-thing-at-point)
+
 ;; (require 'simpc-mode)
 ;; (add-to-list 'auto-mode-alist '("\\.[hc]\\(pp\\)?\\'" . simpc-mode))
 
-(defun mitchell/astyle-buffer ()
-  (interactive)
-  (let ((saved-line-number (line-number-at-pos)))
-    (shell-command-on-region
-     (point-min)
-     (point-max)
-     "astyle --style=kr" nil t)
-    (whitespace-cleanup)
-    (goto-line saved-line-number)))
+(mitchell/require 'clang-format)
+(require 'clang-format)
 
-(global-set-key (kbd "C-c C-a") 'mitchell/astyle-buffer)
+(defun mitchell/format-buffer ()
+  (interactive)
+  (when (executable-find "clang-format")
+    (let ((position (point)))
+      (clang-format-buffer)
+      (goto-char position))))
+
+(global-set-key (kbd "C-c C-a") 'mitchell/format-buffer)
+
+(defun mitchell/c-style ()
+  (setq c-basic-offset 4
+        c-default-style "linux")
+  (c-toggle-auto-hungry-state -1)
+  (setq-local comment-auto-fill-only-comments t)
+  (setq-local indent-tabs-mode nil))
+
+;; GDB
+(mitchell/require 'realgud)
+(require 'realgud)
+
+(setq gdb-many-windows t
+      gdb-show-main t
+      realgud-safe-mode nil
+      realgud-terminal-name "ansi-term")
+
+;; Flycheck
+(mitchell/require 'flycheck 'flycheck-posframe)
+(require 'flycheck)
+(require 'flycheck-posframe)
+
+(setq flycheck-posframe-position 'window-bottom-left-corner
+      flycheck-check-syntax-automatically '(save mode-enabled)
+      flycheck-display-errors-delay 0.3)
+
+(flycheck-posframe-mode 1)
+
+(defun mitchell/c-mode-setup ()
+  (mitchell/c-style)
+  (lsp)
+  (company-mode)
+  (yas-minor-mode 1)
+  (setq-local flycheck-clang-language-standard
+              (if (derived-mode-p 'c++-mode) "c++20" "c17"))
+  (local-set-key (kbd "C-c d") 'realgud:gdb)
+  (local-set-key (kbd "C-c C-c") 'mitchell/compile-project)
+  (local-set-key (kbd "M-.") 'lsp-find-definition)
+  (local-set-key (kbd "M-,") 'lsp-find-references)
+  (local-set-key (kbd "C-c C-d") 'lsp-describe-thing-at-point)
+  (setq-local c-toggle-electric-state -1)
+  (setq-local delete-active-region t)
+  (add-hook 'before-save-hook #'mitchell/format-buffer nil t))
+
+(add-hook 'c-mode-hook #'mitchell/c-mode-setup)
+(add-hook 'c++-mode-hook #'mitchell/c-mode-setup)
 
 ;; Python
 (require 'python)
@@ -216,19 +307,32 @@
 
 ;; Mail
 (setq user-full-name "mitchell")
-(setq user-mail-address "10245102450@stu.ecnu.edu.cn")
-(setq send-mail-function 'smtpmail-send-it)
-(setq smtpmail-smtp-server "smtp.exmail.qq.com")
-(setq smtpmail-smtp-service 465)
-(setq smtpmail-stream-type 'ssl)
-(setq smtpmail-smtp-user "10245102450@stu.ecnu.edu.cn")
+(setq user-mail-address "mitchell@sdf.org")
+(setq sendmail-program (expand-file-name "~/.emacs.local/bin/sdf-sendmail")
+      mail-specify-envelope-from 'header
+      message-sendmail-envelope-from 'header
+      message-sendmail-extra-arguments '("-t" "-i")
+      message-send-mail-function 'message-send-mail-with-sendmail)
 
 (require 'gnus)
 (setq gnus-select-method
-      '(nnimap "ecnu"
-	       (nnimap-address "imap.exmail.qq.com")
+      '(nnimap "sdf"
+	       (nnimap-address "mx.sdf.org")
 	       (nnimap-server-port 993)
-	       (nnimap-stream ssl)))
+	       (nnimap-stream ssl)
+           (nnimap-authinfo-file "~/.authinfo")))
+
+(setq gnus-treat-hide-read nil)
+(setq gnus-fetch-old-headers t)
+(setq gnus-fetch-old-ephemeral-headers t)
+(setq gnus-keep-backlog 0)
+(setq gnus-summary-expunge-below 0)
+(setq gnus-summary-sort-by-date t)
+(setq gnus-summary-default-sort-function 'gnus-summary-sort-by-date)
+(setq gnus-sum-thread-tree-sort-function 'gnus-thread-sort-by-date)
+(setq gnus-summary-make-menu nil)
+(setq gnus-summary-thread-gathering-function 'gnus-gather-threads-by-subject)
+(setq gnus-thread-hide-subtree nil)
 
 ;; Org-mode
 (org-babel-do-load-languages
@@ -319,11 +423,6 @@ compilation-error-regexp-alist-alist
 ;; OCaml
 (mitchell/require 'tuareg)
 (mitchell/require 'merlin)
-
-;; Company-mode
-(mitchell/require 'company)
-(require 'company)
-(global-company-mode)
 
 (load-file custom-file)
 

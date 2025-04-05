@@ -123,6 +123,9 @@ For example, \"11:30am\" or \"15:45\"."
   (interactive)
   (add-to-list 'write-file-functions 'delete-trailing-whitespace))
 
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+
 (add-hook 'c++-mode-hook 'mitchell/set-up-whitespace-handling)
 (add-hook 'c-mode-hook 'mitchell/set-up-whitespace-handling)
 (add-hook 'simpc-mode-hook 'mitchell/set-up-whitespace-handling)
@@ -131,10 +134,14 @@ For example, \"11:30am\" or \"15:45\"."
 (add-hook 'rust-mode-hook 'mitchell/set-up-whitespace-handling)
 (add-hook 'markdown-mode-hook 'mitchell/set-up-whitespace-handling)
 (add-hook 'python-mode-hook 'mitchell/set-up-whitespace-handling)
+(add-hook 'org-mode-hook 'mitchell/set-up-whitespace-handling)
 
+(global-set-key (kbd "C-c w") 'whitespace-mode)
 (global-set-key (kbd "C-.") 'mitchell/jump-lines)
 (global-set-key (kbd "C-y") 'mitchell/overwrite-yank)
 (global-set-key (kbd "C-,") 'mitchell/duplicate-line)
 (global-set-key (kbd "M-n") 'mitchell/next-error)
 (global-set-key (kbd "M-p") 'mitchell/previous-error)
 (global-set-key [f9] 'mitchell/recompile)
+
+(defalias 'yes-or-no-p 'y-or-n-p)
