@@ -1,0 +1,49 @@
+#!/bin/bash
+
+ARGS=$(getopt -o o:i: --long output:,input: -n 'mergepdf' -- "$@")
+if [ $? != 0 ]; then
+  echo "args error"
+  exit 1
+fi
+
+eval set -- "$ARGS"
+
+output="merged.pdf"
+input=()
+
+while true; do
+  case "$1" in
+    -o|--output)
+      output="$2"
+      shift 2
+      ;;
+    -i|--input)
+      IFS=',' read -r -a input <<< "$2"
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "unknown: $1"
+      exit 1
+      ;;
+  esac
+done
+
+if [ ${#input[@]} -eq 0 ]; then
+  mapfile -t input < <(ls *.pdf | sort)
+fi
+
+echo "inputs: "
+printf '  %s\n' "${input[@]}"
+echo "output: $output"
+
+pdfunite "${input[@]}" "$output"
+
+if [ $? -eq 0 ]; then
+  echo "succ: $output"
+else
+  echo "failed"
+fi

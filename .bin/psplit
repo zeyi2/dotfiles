@@ -1,0 +1,49 @@
+#!/bin/bash
+
+ARGS=$(getopt -o i:o:r: --long input:,output:,range: -n 'splitpdf' -- "$@")
+if [ $? -ne 0 ]; then
+  echo "error"
+  exit 1
+fi
+
+eval set -- "$ARGS"
+
+input=""
+output="output.pdf"
+range=""
+
+while true; do
+  case "$1" in
+    -i|--input)
+      input="$2"
+      shift 2
+      ;;
+    -o|--output)
+      output="$2"
+      shift 2
+      ;;
+    -r|--range)
+      range="$2"
+      shift 2
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "unknown: $1"
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$input" ] || [ -z "$range" ]; then
+  echo "how-to:"
+  echo "  $0 -i input.pdf -o output.pdf -r start-end"
+  echo "  eg: $0 -i book.pdf -o ch4.pdf -r 171-231"
+  exit 1
+fi
+
+qpdf "$input" --pages "$input" "$range" -- "$output"
+
+echo "output: $output"

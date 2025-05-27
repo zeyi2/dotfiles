@@ -1,0 +1,58 @@
+#!/usr/bin/env sh
+
+swap_file="/var/swap"
+default_size="4G"
+
+if [ "$(id -u)" -ne 0 ]; then
+    exec sudo "$0" "$@"
+fi
+
+[ -n "$2" ] && size="$2" || size="$default_size"
+
+case "$1" in
+    start)
+        if [ -f "$swap_file" ]; then
+            echo "Swap file already exists at $swap_file"
+            if swapon --show | grep -q "$swap_file"; then
+                echo "Swap is already active"
+                exit 0
+            fi
+            echo "Removing existing inactive swap file"
+            rm -f "$swap_file"
+        fi
+
+        echo "Creating swap file of size $size at $swap_file"
+        
+        count=$(echo "$size" | sed 's/[gG]//' )
+        
+        if command -v fallocate >/dev/null 2>&1; then
+            fallocate -l "${count}G" "$swap_file"
+        else
+            dd if=/dev/zero of="$swap_file" bs=1G count="$count" status=progress
+        fi
+        
+        chmod 600 "$swap_file"
+        
+        mkswap "$swap_file"
+        swapon "$swap_file"
+
+        echo "Swap enabled at $swap_file"
+        swapon --show
+        ;;
+    stop)
+        if [ ! -f "$swap_file" ]; then
+            echo "No swap file found to remove"
+            exit 0
+        fi
+
+        echo "Disabling swap..."
+        swapoff "$swap_file"
+        rm -f "$swap_file"
+        echo "Swap disabled and file removed"
+        ;;
+    *)
+        echo "Usage: $0 start [size] | stop"
+        echo "Example: $0 start 8G"
+        exit 1
+        ;;
+esac

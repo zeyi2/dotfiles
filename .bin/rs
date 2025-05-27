@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+for file in *\ *; do
+    [ -e "$file" ] || continue
+    new_name=$(echo "$file" | tr ' ' '_')
+    mv -i "$file" "$new_name"
+    echo "renamed: '$file' -> '$new_name'"
+done

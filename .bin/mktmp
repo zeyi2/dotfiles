@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+
+tmp_dir="./tmp"
+[ -n "$2" ] && tmp_dir="./$2"
+
+case "$1" in
+    start)
+        if [ -d "$tmp_dir" ]; then
+            echo "temp directory already exists: $tmp_dir"
+        else
+            mkdir -p "$tmp_dir"
+            echo "created temp directory at: $tmp_dir"
+        fi
+        ;;
+    stop)
+        if [ -d "$tmp_dir" ]; then
+            echo "clearing contents of: $tmp_dir"
+            rm -rf "$tmp_dir"
+            echo "done"
+        else
+            echo "no temp directory found at: $tmp_dir"
+        fi
+        ;;
+    *)
+        echo "usage: $0 start [dirname] | stop [dirname]"
+        exit 1
+        ;;
+esac
